@@ -5,10 +5,10 @@ require 'yaml'
 class SofaCheck
 
   def initialize
-    check_health(service, interval)
+    check_health(service, interval, tag)
   end
 
-  def check_health(service, interval)
+  def check_health(service, interval, tag)
     host = `hostname`.strip
     regex = service[0]
     name = "#{host}_#{service}"
@@ -17,10 +17,10 @@ class SofaCheck
 
     if process.empty?
       # unhealthy
-      data = {'name' => name, 'state' => 'unhealthy'}.to_json
+      data = {'name' => name, 'state' => 'unhealthy', 'tag' => tag}.to_json
     else
       # healthy
-      data = {'name' => name, 'state' => 'healthy'}.to_json
+      data = {'name' => name, 'state' => 'healthy', 'tag' => tag}.to_json
     end
 
     RestClient.post("#{health_url}", data, {:content_type => :json, :authorization => "Token token=#{token}"})
@@ -44,6 +44,10 @@ class SofaCheck
 
   def interval
     config["prod"]["service_interval"]
+  end
+
+  def tag
+    config["prod"]["service_tag"]
   end
 
   def run_command(cmd)
